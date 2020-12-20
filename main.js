@@ -22,90 +22,132 @@ function compile() {
         let error = parsed.value0.value0
         errorP.innerHTML = error + ' at ' + location.line + ':' + location.column
     }
+
+    setTable();
 }
 
-var canvas = new fabric.Canvas('canvas');
-canvas.setWidth(window.innerWidth / 2.1);
-canvas.setHeight(window.innerHeight * 0.9);
 
+function setTable() {
+    let table = document.getElementById('connectTable');
 
-fabric.Object.prototype.objectCaching = false;
+    table.innerHTML = "<tr><th>input</th><th width=\"80%\">block</th><th>output</th></tr>"
 
-function draw() {
-    
+    for (let block of Block.blocks) {
+        for (let i = 0; i < Math.max(block.inputs.length, block.outputs.length); i++) {
+            let row = document.createElement('tr');
+            let inputCol = document.createElement('td');
+            let nameCol = document.createElement('td');
+            let outputCol = document.createElement('td');
 
-    canvas.renderAll();
+            if (i == 0) {
+                nameCol.innerHTML = block.id
+            }
 
-    window.requestAnimationFrame(draw);
+            if (i < block.inputs.length) {
+                inputCol.innerHTML = block.inputs[i].type
+                inputCol.id = `${block.id}${i}${IN}`
+                
+                inputCol.onclick = function(e) {
+                    select(block.id, i, IN);
+                };
+            }
+
+            if (i < block.outputs.length) {
+                outputCol.innerHTML = block.outputs[i].type
+                outputCol.id = `${block.id}${i}${OUT}`
+
+                outputCol.onclick = function(e) {
+                    select(block.id, i, OUT);
+                };
+                
+            }
+
+            row.appendChild(inputCol);
+            row.appendChild(nameCol);
+            row.appendChild(outputCol);
+
+            table.appendChild(row);
+        }
+    }
+}
+
+function highlight(blockid, i, dir) {
+    highlight_(`${blockid}${i}${dir}`);
+}
+
+function highlight_(id) {
+    let elem = document.getElementById(id);
+    elem.style.border = "3px solid #00ff00";
+}
+
+function lowlight(blockid, i, dir) {
+    lowlight_(`${blockid}${i}${dir}`)
+}
+
+function lowlight_(id) {
+    let elem = document.getElementById(id);
+    elem.style.border = "";
+}
+
+function setColors(idIn, idOut) {
+    let elem = document.getElementById(idOut);
+    elem.style.background = colors[colorp];
+
+    elem = document.getElementById(idIn);
+    elem.style.background = colors[colorp];
+
+    colorp++;
 
 }
 
-window.requestAnimationFrame(draw);
+const colors = [
+    "#b6d7a8",
+    "#ffe599",
+    "#f9cb9c",
+    "#ea9999",
+    "#a4c2f4",
+    "#a2c4c9",
+    "#b4a7d6",
+    "#9fc5e8",
+    "#d5a6bd",
+]
 
+let colorp = 0;
 
+let selectedInput = undefined;
+let selectedOutput = undefined;
 
+function select(blockid, i, dir) {
 
-
-
-
-// let c = document.getElementById("canvas");
-// c.width = window.innerWidth / 2.1;
-// c.height = window.innerHeight * 0.9;
-// var ctx = c.getContext("2d");
-// ctx.font = "14px Courier";
-
-
-// function draw() {
-//     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-//     for (let b of Block.blocks) {
-//         b.draw();
-//     }
-//     window.requestAnimationFrame(draw);
-
-// }
-
-// window.requestAnimationFrame(draw);
-
-
-// let dragged = undefined;
-
-// canvas.onmousedown = function(e) {
-
-//     for (let b of Block.blocks) {
-//         let x = e.layerX;
-//         let y = e.layerY;
-//         if (x >= b.pos.x && x <= b.pos.x + b.dim.w && y >= b.pos.y && y <= b.pos.y + b.dim.h) {
-//             console.log("hit", b.id);
-//             dragged = b;
-//         } else {
-//         }
-//     }
-// }
-
-// canvas.onmouseup = function(e) {
-//     dragged = undefined;
-// }
-
-// canvas.onmousemove = function(e) {
-//     let dx = e.movementX;
-//     let dy = e.movementY;
+    let id = `${blockid}${i}${dir}`;
     
-//     if (dragged) {
-//         dragged.pos = {x: e.layerX - dragged.dim.w / 2, y: e.layerY - dragged.dim.h / 2};
-//     }
-// }
+    if (!selectedInput && !selectedOutput) {
+        if (dir == OUT) {
+            selectedOutput = id
+            highlight(blockid, i, dir);
+        } else if (dir == IN) {
+            selectedInput = id
+            highlight(blockid, i, dir);
+        }
+    }
 
-// selectedInput = {
-//     block: undefined,
-//     signal: undefined
-// }
+    if (dir == IN) {
+        if (!selectedInput) {
+            selectedInput = id
+            connect();
+        }
+    }
 
-// selectedOutput = {
-//     block: undefined,
-//     signal: undefined
-// }
 
-// canvas.onclick = function(e) {
+    console.log(selectedInput, selectedOutput)
+}
 
-// }
+function connect() {
+    if (selectedInput && selectedOutput) {
+        lowlight_(selectedOutput);
+        lowlight_(selectedInput);
+        setColors(selectedInput, selectedOutput);
+        selectedInput = undefined;
+        selectedOutput = undefined;
+    }
+}

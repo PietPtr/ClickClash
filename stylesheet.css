@@ -37,5 +37,17 @@ textarea {
 }
 
 canvas {
-    border: 1px solid #777777
+    border: 1px solid #777777;
+}
+
+table {
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+th, td {
+    border: 1px solid black;
+    user-select: none;
 }
