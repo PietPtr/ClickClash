@@ -1,13 +1,41 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <meta charset="UTF-8">
-    <title>Click Clash</title>
-  </head>
+    <head>
+        <meta charset="UTF-8">
+        <title>Click Clash</title>
 
-  <body>
-    <script src="./index.js"></script>
-  <body>
+        <link rel="stylesheet" href="stylesheet.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.1.0/fabric.min.js"></script>
+    </head>
+
+    <body>
+        <script src="./index.js"></script>
+
+        <div class="split left">
+            Enter the type definitions of your mealy machines here.
+            <textarea id="TypeHS" rows="40" cols="80">
+mealy control :: (Operand, Instr) -> StackInstr
+mealy stack :: StackInstr -> (Operand, MaybeAddrOperand)
+mealy bram :: BRAMinput -> Operand
+            </textarea>
+
+            <center>
+                <button onClick="compile()">Compile to blocks</button>
+            </center>
+
+            <p class="error" id="error"></p>
+
+        </div>
+
+        <div class="split right">
+            <p>Once your definitions are compiled, connect any inputs and outputs here. Unconnected in/outputs will be the in/outputs of the total system.</p>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <script src="./Block.js"></script>
+        <script src="./util.js"></script>
+        <script src="./main.js"></script>
+    <body>
 
 </html>

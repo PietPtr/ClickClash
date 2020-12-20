@@ -1,0 +1,41 @@
+/* Split the screen in half */
+.split {
+    height: 100%;
+    width: 49%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    padding-left: 1%;
+
+    border-right: 1px solid black;
+}
+
+/* Control the left side */
+.left {
+    left: 0;
+}
+
+/* Control the right side */
+.right {
+    right: 0;
+}
+
+.error {
+    color: red;
+    font-family: courier;
+}
+
+textarea {
+    background: url(http://i.imgur.com/2cOaJ.png);
+    background-attachment: local;
+    background-repeat: no-repeat;
+    padding-left: 35px;
+    padding-top: 10px;
+    border-color:#ccc;
+    font-size: 14px;
+}
+
+canvas {
+    border: 1px solid #777777
+}
