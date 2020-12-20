@@ -6,7 +6,7 @@
         <title>Click Clash</title>
 
         <link rel="stylesheet" href="stylesheet.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.1.0/fabric.min.js"></script>
+        <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
     </head>
 
     <body>
@@ -17,7 +17,8 @@
             <textarea id="TypeHS" rows="40" cols="80">
 mealy control :: (Operand, Instr) -> StackInstr
 mealy stack :: StackInstr -> (Operand, MaybeAddrOperand)
-mealy bram :: BRAMinput -> Operand
+mealy bram :: (Operand, MaybeAddrOperand) -> Operand
+mealy reg :: Operand -> Operand
             </textarea>
 
             <center>
@@ -29,13 +30,13 @@ mealy bram :: BRAMinput -> Operand
         </div>
 
         <div class="split right">
-            <table id="connectTable" cellspacing="0" border=0>
-                <tr>
-                    <th>input</th>
-                    <th width="80%">block</th>
-                    <th>output</th>
-                </tr>
-            </table>
+            <canvas id="canvas"></canvas>
+            
+            <center>
+                <button onClick="save()">Save</button>
+            </center>
+
+            <p class="error" id="linkError"></p>
         </div>
 
         <script src="./Block.js"></script>

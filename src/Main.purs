@@ -106,4 +106,4 @@ parse str = runParser str alldefsP
 
 
 
-test = "type Operand = Signed 16\ntype Addr = Unsigned 4\ndata StackInstr = Push Operand | Pop | Nop\nmealy stack :: StackInstr -> (Operand, Addr)\ntype BRAMinput = (Addr, MaybeAddrOperand)\n"
+-- TODO: nu het connecten mogelijk is kunnen we vanuit een lijst van connecties code gaan gereneren. succes :P
