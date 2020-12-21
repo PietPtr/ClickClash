@@ -161,6 +161,14 @@ class Signal {
         this.y = this.connector.y;
     }
 
+    destroy() {
+        stage.removeChild(this.name);
+        stage.removeChild(this.connector);
+
+        let conns = Signal.connections.filter(c => c.out == this || c.inp == this);
+        conns.map(c => c.destroy());
+    }
+
     save() {
         return {
             blockId: this.blockId,
@@ -269,6 +277,20 @@ class Block {
             id: this.id,
             mirrored: this.mirrored
         };
+    }
+
+    destroy() {
+        let i = Block.blocks.indexOf(this);
+
+        if (i >= 0) {
+            Block.blocks.splice(i, 1);
+        }
+        stage.removeChild(this.rect);
+        stage.removeChild(this.name);
+        
+        this.inputs.map(i => i.destroy());
+        this.outputs.map(o => o.destroy());
+
     }
 
     static load(data) {

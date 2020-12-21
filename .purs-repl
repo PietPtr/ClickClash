@@ -7,8 +7,12 @@ import Effect.Console (log, logShow)
 
 import Control.Alt ((<|>))
 import Data.Either
-import Data.List
+import Data.Array hiding (toUnfoldable, many, (:), some)
+import Data.List hiding (length, (!!), init, last, filter)
 import Data.Identity
+import Data.Show
+import Data.Maybe
+import Data.String.CodeUnits hiding (length)
 import Text.Parsing.Parser
 import Text.Parsing.Parser.Combinators
 import Text.Parsing.Parser.String

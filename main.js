@@ -17,6 +17,22 @@ function compile() {
             Block.newOrUpdate(blockdef);
         }
 
+        let blockIds = blockdefs.map(bd => bd.value0);
+
+        let remove = [];
+
+        
+        for (let i = 0; i < Block.blocks.length; i++) {
+            let block = Block.blocks[i];
+            if (!blockIds.includes(block.id)) {
+                remove.push(block);
+            }
+        }
+
+        for (let block of remove) {
+            block.destroy();
+        }
+
     } else {
         let location = parsed.value0.value1
         let error = parsed.value0.value0
@@ -60,7 +76,8 @@ function error(message) {
 function save() {
     let data = {
         blocks: Block.blocks.map(b => b.save()),
-        connections: Signal.connections.map(c => c.save())
+        connections: Signal.connections.map(c => c.save()),
+        code: document.getElementById("TypeHS").value
     }
 
     localStorage.setItem("save", JSON.stringify(data));
@@ -78,8 +95,14 @@ function load() {
     Block.blocks = data.blocks.map(b => Block.load(b));
 
     Signal.connections = data.connections.map(c => Connection.load(c));
+
+    document.getElementById("TypeHS").value = data.code;
 }
 
-load();
+
+
+if (localStorage.getItem("save")) {
+    load();
+};
 
 window.requestAnimationFrame(draw);
