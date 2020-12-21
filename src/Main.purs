@@ -8,7 +8,7 @@ import Effect.Console (log, logShow)
 import Control.Alt ((<|>))
 import Data.Either
 import Data.Array hiding (toUnfoldable, many, (:), some)
-import Data.List hiding (length, (!!), init, last, filter, mapWithIndex, updateAt)
+import Data.List hiding (length, (!!), init, last, filter, mapWithIndex, updateAt, concat)
 import Data.Identity
 import Data.Show
 import Data.Maybe
@@ -113,25 +113,31 @@ type Type = String
 type BlockId = String
 type SigIdx = Int
 
-data Block = Blk String (Array Type) (Array Type)
+data Block = Blk String (Array Type) (Array Type) -- inputs outputs
 
 instance showBlock :: Show Block where
     show (Blk id i o) = "Blk " <> show id <> " " <> show i <> " " <> show o
 
-data Connection = Conn Output Input
+data Connection = Conn Signal Signal -- Output Input
 
 instance showConnection :: Show Connection where
-    show (Conn i o) = "Conn " <> show i <> " " <> show o
-
-data Input = Input BlockId SigIdx
-data Output = Output BlockId SigIdx
-
-instance showInput :: Show Input where
-    show (Input bid sigidx) = "Input " <> show bid <> " " <> show sigidx
+    show (Conn o i) = "Conn " <> show o <> " " <> show i
 
 
-instance showOutput :: Show Output where
-    show (Output bid sigidx) = "Output " <> show bid <> " " <> show sigidx
+data Signal = Signal BlockId SigIdx Direction
+data Direction = In | Out
+
+derive instance eqDir :: Eq Direction
+derive instance eqSignal :: Eq Signal
+
+
+instance showSignal :: Show Signal where
+    show (Signal bid sigidx dir) = "Signal " <> show dir <> " " <> show bid <> " " <> show sigidx
+
+
+instance showDirection :: Show Direction where
+    show In = "In"
+    show Out = "Out"
 
 blocks :: Array Block
 blocks = [
@@ -141,28 +147,15 @@ blocks = [
 
 conns :: Array Connection
 conns = [
-    Conn (Output "xor" 0) (Input "not" 0),
-    Conn (Output "xor" 0) (Input "reg" 0),
-    Conn (Output "reg" 0) (Input "xor" 1)]
-
-inputs :: Array Input
-inputs = [Input "xor" 0]
-
-outputs :: Array Output
-outputs = [Output "not" 0]
-
-
-class Var a where
-    var :: a -> String
-
-instance varIn :: Var Input where
-    var (Input bid num) = bid <> "In" <> show num
-
-instance varOut :: Var Output where
-    var (Output bid num) = bid <> "Out" <> show num
+    Conn (Signal "xor" 0 Out) (Signal "not" 0 In),
+    Conn (Signal "xor" 0 Out) (Signal "reg" 0 In),
+    Conn (Signal "reg" 0 Out) (Signal "xor" 1 In)]
 
 
 -- code generating functions
+
+var :: Signal -> String
+var (Signal bid idx dir) = bid <> show dir <> show idx
 
 sepped :: Array String -> String -> String
 sepped list sep = (foldl (\s x -> s <> x <> sep) "" (initlist)) <> lastStr
@@ -172,14 +165,14 @@ sepped list sep = (foldl (\s x -> s <> x <> sep) "" (initlist)) <> lastStr
 
 
 
-gBundle :: forall a . Var a => Array a -> String
+gBundle :: Array Signal -> String
 gBundle signals = case length signals of
     0 -> ""
     1 -> maybe "" var (signals !! 0)
     _ -> "(" <> sepped (map var signals) ", " <> ")"
 
 
-gSystem :: Array Input -> Array Output -> String
+gSystem :: Array Signal -> Array Signal -> String
 gSystem ins outs = "system " <> inputsStr <> " = " <> outputsStr
     where
         inputsStr = gBundle ins
@@ -193,7 +186,7 @@ gWhere :: Array Connection -> Block -> String
 gWhere conns (Blk id blockInputs blockOutputs) =  outputs <> " = " <> block <> " " <> inputs
     where
         outputs = gBundle outs
-        block = id <> "B" <> bundle
+        block = unbundle <> id <> "B" <> bundle
         inputs = gBundle ins
 
         bundle = case length blockInputs of
@@ -201,16 +194,55 @@ gWhere conns (Blk id blockInputs blockOutputs) =  outputs <> " = " <> block <> "
             1 -> ""
             _ -> " $ bundle"
 
-        -- array of Output signals
-        outs = mapWithIndex (\i out -> (Output id i)) blockOutputs
-        insInitial = mapWithIndex (\i out -> (Input id i)) blockInputs
+        unbundle = case length blockOutputs of
+            0 -> ""
+            1 -> ""
+            _ -> "unbundle $ "
 
-        relevantConns = filter (\(Conn _ (Input bid num)) -> bid == id) conns
+
+        outs = mapWithIndex (\i out -> (Signal id i Out)) blockOutputs
+        insInitial = mapWithIndex (\i out -> (Signal id i In)) blockInputs
+
+        relevantConns = filter (\(Conn _ (Signal bid _ _)) -> bid == id) conns
 
         ins = foldl substituteConnection insInitial relevantConns
 
-        substituteConnection initial (Conn (Output bid num) (Input _ idx)) = 
-            maybe [] (\x -> x) (updateAt idx (Output bid num) initial)
+        substituteConnection initial (Conn (Signal bid num Out) (Signal _ idx In)) = 
+            maybe [] (\x -> x) (updateAt idx (Signal bid num Out) initial)
+        substituteConnection initial _ = initial -- aaaah gooi aub iets van een exception of zo hier
 
 
--- vergeet unbundle niet bij dingen met meerdere outputs
+
+gAll :: Array Block -> Array Connection -> String
+gAll blocks conns = sepped ([defLine, whereLine] <> wheresLines') "\n"
+    where
+        defLine = gSystem ins outs
+        whereLine = "    where"
+        wheresLines = gWheres blocks conns
+        wheresLines' = map (\a -> "        " <> a) wheresLines
+
+        ins = unconnectedSignals conns blocks In
+        outs = unconnectedSignals conns blocks Out
+
+
+unconnectedSignals :: Array Connection -> Array Block -> Direction -> Array Signal
+unconnectedSignals conns blocks dir = filter (\s -> not $ s `elem` usedCheck) allCheck
+    where
+        allOutputs = concat $ map 
+            (\(Blk bid _ out) -> mapWithIndex (\i _ -> Signal bid i Out) out) blocks
+
+        allInputs = concat $ map 
+            (\(Blk bid inp _) -> mapWithIndex (\i _ -> Signal bid i In) inp) blocks
+
+        allCheck = case dir of
+            In -> allInputs
+            Out -> allOutputs
+
+        usedInputs = map (\(Conn _ inp) -> inp) conns
+        usedOutputs = map (\(Conn out _) -> out) conns
+
+        usedCheck = case dir of
+            In -> usedInputs
+            Out -> usedOutputs
+
+        

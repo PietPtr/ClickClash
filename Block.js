@@ -43,6 +43,10 @@ class Connection {
         }
     }
 
+    adt() {
+        return lib.Conn.create(this.out.adt())(this.inp.adt());
+    }
+
     static load(data) {
         let allInputs = [].concat.apply([], Block.blocks.map(b => b.inputs));
         let allOutputs = [].concat.apply([], Block.blocks.map(b => b.outputs));
@@ -178,6 +182,11 @@ class Signal {
         }
     }
 
+    adt() {
+        let dir = this.dir == IN ? new lib.In() : new lib.Out();
+        return lib.Signal.create(this.blockId)(this.number)(dir)
+    }
+
     static load(data) {
         let sig = new Signal(data.blockId, data.number, data.type, data.dir);
         return sig;
@@ -291,6 +300,11 @@ class Block {
         this.inputs.map(i => i.destroy());
         this.outputs.map(o => o.destroy());
 
+    }
+
+    adt() {
+        let adt = lib.Blk.create(this.id)(this.inputs.map(i => i.type))(this.outputs.map(o => o.type))
+        return adt;
     }
 
     static load(data) {

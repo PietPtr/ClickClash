@@ -1,7 +1,7 @@
 
 let lib = PS["Main"]
 
-function compile() {
+function compileToBlocks() {
     let defArea = document.getElementById("TypeHS");
     let errorP = document.getElementById("error");
 
@@ -38,6 +38,18 @@ function compile() {
         let error = parsed.value0.value0
         errorP.innerHTML = error + ' at ' + location.line + ':' + location.column
     }
+}
+
+function compileToClash() {
+    let blocks = Block.blocks.map(b => b.adt());
+    let conns = Signal.connections.map(c => c.adt());
+
+    let result = lib.gAll(blocks)(conns);
+
+    let clashArea = document.getElementById("clash");
+
+    clashArea.value = result;
+
 
 }
 

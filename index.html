@@ -14,18 +14,23 @@
 
         <div class="split left">
             Enter the type definitions of your mealy machines here.
-            <textarea id="TypeHS" rows="40" cols="80">
+            <textarea id="TypeHS" rows="32" cols="80">
 mealy control :: (Operand, Instr) -> StackInstr
 mealy stack :: StackInstr -> (Operand, MaybeAddrOperand)
 mealy bram :: (Operand, MaybeAddrOperand) -> Operand
 mealy reg :: Operand -> Operand
             </textarea>
 
+
             <center>
-                <button onClick="compile()">Compile to blocks</button>
+                <button onClick="compileToBlocks()">Compile to blocks</button>
+                <p class="error" id="error"></p>
+
+                <p>Clash output:</p>
             </center>
 
-            <p class="error" id="error"></p>
+
+            <textarea readonly id="clash" rows="20" cols="80"></textarea>
 
         </div>
 
@@ -33,7 +38,7 @@ mealy reg :: Operand -> Operand
             <canvas id="canvas"></canvas>
             
             <center>
-                <button onClick="save()">Save</button>
+                <button onClick="compileToClash()">Compile to Clash</button>
             </center>
 
             <p class="error" id="linkError"></p>
