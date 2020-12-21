@@ -13,7 +13,12 @@
         <script src="./index.js"></script>
 
         <div class="split left">
-            Enter the type definitions of your mealy machines here.
+            <div>
+                <p>Enter the type definitions of your mealy machines here, or try one of the examples</p>
+                <button onclick="loadExample('logic')">Simple logic</button>
+                <button onclick="loadExample('adder')">Delayed adder</button>
+                <button onclick="loadExample('blockram')">Block RAM with stack controller</button>
+            </div>
             <textarea id="TypeHS" rows="32" cols="80">
 mealy control :: (Operand, Instr) -> StackInstr
 mealy stack :: StackInstr -> (Operand, MaybeAddrOperand)
@@ -42,8 +47,15 @@ mealy reg :: Operand -> Operand
             </center>
 
             <p class="error" id="linkError"></p>
+
+            <center>
+                <button onClick="save()">Save</button>
+                <button onClick="load()">Load</button>
+                <button onClick="deleteAll()">Delete</button>
+            </center>
         </div>
 
+        <script src="./examples.js"></script>
         <script src="./Block.js"></script>
         <script src="./util.js"></script>
         <script src="./main.js"></script>

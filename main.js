@@ -13,6 +13,8 @@ function compileToBlocks() {
 
         let blockdefs = parsed.value0;
 
+        console.log(blockdefs)
+
         for (let blockdef of blockdefs) {
             Block.newOrUpdate(blockdef);
         }
@@ -38,6 +40,8 @@ function compileToBlocks() {
         let error = parsed.value0.value0
         errorP.innerHTML = error + ' at ' + location.line + ':' + location.column
     }
+
+    save();
 }
 
 function compileToClash() {
@@ -50,7 +54,14 @@ function compileToClash() {
 
     clashArea.value = result;
 
+    save();
+}
 
+function loadExample(name) {
+    let defArea = document.getElementById("TypeHS");
+
+    defArea.value = examples[name];
+    
 }
 
 let canvas = document.getElementById("canvas");
@@ -111,6 +122,34 @@ function load() {
     document.getElementById("TypeHS").value = data.code;
 }
 
+function deleteAll() {
+    
+    let done = false;
+
+    while (!done) {
+        let b = Block.blocks[0];
+
+        if (b) {
+            b.destroy();
+        } else {
+            done = true;
+        }
+
+    }
+
+    done = false;
+
+    while (!done) {
+        let c = Signal.connections[0];
+        
+        if (c) {
+            c.destroy()
+        } else {
+            done = true;
+        }
+    }
+
+}
 
 
 if (localStorage.getItem("save")) {

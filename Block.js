@@ -215,6 +215,9 @@ class Signal {
         Signal.sInput = undefined;
         Signal.sOutput = undefined;
     }
+
+    // TODO: als er iets verandert in de signals wordt dat niet geupdatet en moet het block verwijderd
+    // en toegevoegd worden.
 }
 
 Signal.sInput = undefined;
@@ -240,7 +243,7 @@ class Block {
         
         this.rect = new createjs.Shape();
         this.rect.graphics.beginStroke("Black").beginFill("#dddddd")
-        .rect(0, 0, this.bw, this.bh);
+            .rect(0, 0, this.bw, this.bh);
         stage.addChild(this.rect);
         
         
@@ -258,6 +261,11 @@ class Block {
         this.inputs = inputs.map((type, i) => new Signal(id, i, type, IN));
         this.outputs = outputs.map((type, i) => new Signal(id, i, type, OUT));
 
+
+        this.pointer = new createjs.Shape();
+        this.pointer.graphics.f("#999999").dp(0, 0, 9, 3);
+
+        stage.addChild(this.pointer);
     }
 
     draw() {
@@ -267,12 +275,21 @@ class Block {
         this.name.x = this.x + BLOCK_EXTRA_WIDTH / 2;
         this.name.y = this.y + 12;
 
+        this.pointer.x = this.x + this.bw / 2;
+        this.pointer.y = this.y + this.bh / 2 + 12;
+
         for (let i of this.inputs) {
             i.draw(this.x, this.y, this.bw, this.mirrored);
         }
 
         for (let o of this.outputs) {
             o.draw(this.x, this.y, this.bw, this.mirrored);
+        }
+
+        if (this.mirrored) {
+            this.pointer.scaleX = -1;
+        } else {
+            this.pointer.scaleX = 1;
         }
     }
 
@@ -296,6 +313,7 @@ class Block {
         }
         stage.removeChild(this.rect);
         stage.removeChild(this.name);
+        stage.removeChild(this.pointer);
         
         this.inputs.map(i => i.destroy());
         this.outputs.map(o => o.destroy());
@@ -324,8 +342,7 @@ class Block {
         let fixed = false
         for (let b of Block.blocks) {
             if (b.id == id) {
-                b.ins = inputs;
-                b.outs = outputs;
+                // TODO: update signals
                 fixed = true
                 break;
             }

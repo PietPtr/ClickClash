@@ -25,6 +25,12 @@ Toevoegingen:
 - Maybes ondersteunen met een blokje waarbij je in kan stellen wat er met de nothing case gebeurt.
 - specaal bram block omdat ie een spannend type heeft?
 - specifieke unbundle blokjes voor subtuples
+- toevoegen van kopieren van blokken, gaat spannend worden met de namen (dan moet er iets onderligged 
+    zijn wat blockId en de onderliggende mealy functie onderscheid)
+- inputs nicer maken, nu kan je het hacken door ze als blokjes toe te voegen maar dat moet eigenlijk 
+    gespecificeerd worden door de gebruiker op een nette manier. Vooral moet het mogelijk zijn om dezelfde
+    input naar meerdere blokken te sturen.
+
 
 -}
 
@@ -147,8 +153,8 @@ blocks = [
 
 conns :: Array Connection
 conns = [
-    Conn (Signal "xor" 0 Out) (Signal "not" 0 In),
-    Conn (Signal "xor" 0 Out) (Signal "reg" 0 In),
+    -- Conn (Signal "xor" 0 Out) (Signal "not" 0 In),
+    -- Conn (Signal "xor" 0 Out) (Signal "reg" 0 In),
     Conn (Signal "reg" 0 Out) (Signal "xor" 1 In)]
 
 
@@ -173,10 +179,18 @@ gBundle signals = case length signals of
 
 
 gSystem :: Array Signal -> Array Signal -> String
-gSystem ins outs = "system " <> inputsStr <> " = " <> outputsStr
+gSystem ins outs = "system " <> inputsStr <> " = " <> outBundle <> outputsStr
     where
-        inputsStr = gBundle ins
+        inputsStr = case length ins of
+            0 -> ""
+            1 -> maybe "" var (ins !! 0)
+            _ -> "inputs"
         outputsStr = gBundle outs
+
+        outBundle = if length ins < 2 
+            then ""
+            else "bundle "
+
 
 
 gWheres :: Array Block -> Array Connection -> Array String
@@ -211,15 +225,21 @@ gWhere conns (Blk id blockInputs blockOutputs) =  outputs <> " = " <> block <> "
             maybe [] (\x -> x) (updateAt idx (Signal bid num Out) initial)
         substituteConnection initial _ = initial -- aaaah gooi aub iets van een exception of zo hier
 
+gInputUnbundleLine :: Array Signal -> String
+gInputUnbundleLine ins = gBundle ins <> " = unbundle inputs"
 
 
 gAll :: Array Block -> Array Connection -> String
-gAll blocks conns = sepped ([defLine, whereLine] <> wheresLines') "\n"
+gAll blocks conns = sepped ([defLine, whereLine, inputUnbundleLine] <> wheresLines') "\n"
     where
         defLine = gSystem ins outs
         whereLine = "    where"
         wheresLines = gWheres blocks conns
         wheresLines' = map (\a -> "        " <> a) wheresLines
+        inputUnbundleLine = case length ins of 
+            0 -> ""
+            1 -> ""
+            _ -> "        " <> gInputUnbundleLine ins
 
         ins = unconnectedSignals conns blocks In
         outs = unconnectedSignals conns blocks Out

@@ -21569,7 +21569,7 @@ var PS = {};
       if (v instanceof Out) {
           return "Out";
       };
-      throw new Error("Failed pattern match at Main (line 138, column 1 - line 140, column 21): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 144, column 1 - line 146, column 21): " + [ v.constructor.name ]);
   });
   var showSignal = new Data_Show.Show(function (v) {
       return "Signal " + (Data_Show.show(showDirection)(v.value2) + (" " + (Data_Show.show(Data_Show.showString)(v.value0) + (" " + Data_Show.show(Data_Show.showInt)(v.value1)))));
@@ -21587,7 +21587,7 @@ var PS = {};
       if (v instanceof Block) {
           return "Block " + (Data_Show.show(Data_Show.showString)(v.value0) + (" " + (Data_Show.show(Data_Show.showArray(Data_Show.showString))(v.value1) + (" " + Data_Show.show(Data_Show.showArray(Data_Show.showString))(v.value2)))));
       };
-      throw new Error("Failed pattern match at Main (line 45, column 1 - line 48, column 78): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 51, column 1 - line 54, column 78): " + [ v.constructor.name ]);
   });
   var showConnection = new Data_Show.Show(function (v) {
       return "Conn " + (Data_Show.show(showSignal)(v.value0) + (" " + Data_Show.show(showSignal)(v.value1)));
@@ -21632,11 +21632,30 @@ var PS = {};
       };
       return "(" + (sepped(Data_Functor.map(Data_Functor.functorArray)($$var)(signals))(", ") + ")");
   };
+  var gInputUnbundleLine = function (ins) {
+      return gBundle(ins) + " = unbundle inputs";
+  };
   var gSystem = function (ins) {
       return function (outs) {
           var outputsStr = gBundle(outs);
-          var inputsStr = gBundle(ins);
-          return "system " + (inputsStr + (" = " + outputsStr));
+          var outBundle = (function () {
+              var $54 = Data_Array.length(ins) < 2;
+              if ($54) {
+                  return "";
+              };
+              return "bundle ";
+          })();
+          var inputsStr = (function () {
+              var v = Data_Array.length(ins);
+              if (v === 0) {
+                  return "";
+              };
+              if (v === 1) {
+                  return Data_Maybe.maybe("")($$var)(Data_Array.index(ins)(0));
+              };
+              return "inputs";
+          })();
+          return "system " + (inputsStr + (" = " + (outBundle + outputsStr)));
       };
   };
   var gWhere = function (conns1) {
@@ -21728,7 +21747,7 @@ var PS = {};
                   if (dir instanceof Out) {
                       return usedOutputs;
                   };
-                  throw new Error("Failed pattern match at Main (line 244, column 21 - line 246, column 31): " + [ dir.constructor.name ]);
+                  throw new Error("Failed pattern match at Main (line 264, column 21 - line 266, column 31): " + [ dir.constructor.name ]);
               })();
               var allOutputs = Data_Array.concat(Data_Functor.map(Data_Functor.functorArray)(function (v) {
                   return Data_Array.mapWithIndex(function (i) {
@@ -21751,7 +21770,7 @@ var PS = {};
                   if (dir instanceof Out) {
                       return allOutputs;
                   };
-                  throw new Error("Failed pattern match at Main (line 237, column 20 - line 239, column 30): " + [ dir.constructor.name ]);
+                  throw new Error("Failed pattern match at Main (line 257, column 20 - line 259, column 30): " + [ dir.constructor.name ]);
               })();
               return Data_Array.filter(function (s) {
                   return !Data_Foldable.elem(Data_Foldable.foldableArray)(eqSignal)(s)(usedCheck);
@@ -21767,12 +21786,22 @@ var PS = {};
           })(wheresLines);
           var outs = unconnectedSignals(conns1)(blocks1)(Out.value);
           var ins = unconnectedSignals(conns1)(blocks1)(In.value);
+          var inputUnbundleLine = (function () {
+              var v = Data_Array.length(ins);
+              if (v === 0) {
+                  return "";
+              };
+              if (v === 1) {
+                  return "";
+              };
+              return "        " + gInputUnbundleLine(ins);
+          })();
           var defLine = gSystem(ins)(outs);
-          return sepped(Data_Semigroup.append(Data_Semigroup.semigroupArray)([ defLine, "    where" ])(wheresLines$prime))("\x0a");
+          return sepped(Data_Semigroup.append(Data_Semigroup.semigroupArray)([ defLine, "    where", inputUnbundleLine ])(wheresLines$prime))("\x0a");
       };
   };
   var datadefP = Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))(Data.create)(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_String.string(Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)("data"))(p.whiteSpace))(p.identifier))(p.whiteSpace))(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)("=")))(p.whiteSpace))(Data_List.many(Text_Parsing_Parser.alternativeParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser.lazyParserT)(Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_Token.alphaNum(Data_Identity.monadIdentity))(Text_Parsing_Parser_String.oneOf(Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)([ " ", "|" ])))));
-  var conns = [ new Conn(new Signal("xor", 0, Out.value), new Signal("not", 0, In.value)), new Conn(new Signal("xor", 0, Out.value), new Signal("reg", 0, In.value)), new Conn(new Signal("reg", 0, Out.value), new Signal("xor", 1, In.value)) ];
+  var conns = [ new Conn(new Signal("reg", 0, Out.value), new Signal("xor", 1, In.value)) ];
   var compute = function (x) {
       return x * 4 | 0;
   };
@@ -21817,6 +21846,7 @@ var PS = {};
   exports["gSystem"] = gSystem;
   exports["gWheres"] = gWheres;
   exports["gWhere"] = gWhere;
+  exports["gInputUnbundleLine"] = gInputUnbundleLine;
   exports["gAll"] = gAll;
   exports["unconnectedSignals"] = unconnectedSignals;
   exports["showDef"] = showDef;
