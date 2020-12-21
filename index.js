@@ -21569,7 +21569,7 @@ var PS = {};
       if (v instanceof Out) {
           return "Out";
       };
-      throw new Error("Failed pattern match at Main (line 144, column 1 - line 146, column 21): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 142, column 1 - line 144, column 21): " + [ v.constructor.name ]);
   });
   var showSignal = new Data_Show.Show(function (v) {
       return "Signal " + (Data_Show.show(showDirection)(v.value2) + (" " + (Data_Show.show(Data_Show.showString)(v.value0) + (" " + Data_Show.show(Data_Show.showInt)(v.value1)))));
@@ -21587,7 +21587,7 @@ var PS = {};
       if (v instanceof Block) {
           return "Block " + (Data_Show.show(Data_Show.showString)(v.value0) + (" " + (Data_Show.show(Data_Show.showArray(Data_Show.showString))(v.value1) + (" " + Data_Show.show(Data_Show.showArray(Data_Show.showString))(v.value2)))));
       };
-      throw new Error("Failed pattern match at Main (line 51, column 1 - line 54, column 78): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 49, column 1 - line 52, column 78): " + [ v.constructor.name ]);
   });
   var showConnection = new Data_Show.Show(function (v) {
       return "Conn " + (Data_Show.show(showSignal)(v.value0) + (" " + Data_Show.show(showSignal)(v.value1)));
@@ -21658,7 +21658,7 @@ var PS = {};
           return "system " + (inputsStr + (" = " + (outBundle + outputsStr)));
       };
   };
-  var gWhere = function (conns1) {
+  var gWhere = function (conns) {
       return function (v) {
           var unbundle = (function () {
               var v1 = Data_Array.length(v.value2);
@@ -21682,7 +21682,7 @@ var PS = {};
           };
           var relevantConns = Data_Array.filter(function (v1) {
               return v1.value1.value0 === v.value0;
-          })(conns1);
+          })(conns);
           var outs = Data_Array.mapWithIndex(function (i) {
               return function (out) {
                   return new Signal(v.value0, i, Out.value);
@@ -21710,9 +21710,9 @@ var PS = {};
           return outputs + (" = " + (block + (" " + inputs)));
       };
   };
-  var gWheres = function (blocks1) {
-      return function (conns1) {
-          return Data_Functor.map(Data_Functor.functorArray)(gWhere(conns1))(blocks1);
+  var gWheres = function (blocks) {
+      return function (conns) {
+          return Data_Functor.map(Data_Functor.functorArray)(gWhere(conns))(blocks);
       };
   };
   var eqDir = new Data_Eq.Eq(function (x) {
@@ -21731,15 +21731,15 @@ var PS = {};
           return x.value0 === y.value0 && x.value1 === y.value1 && Data_Eq.eq(eqDir)(x.value2)(y.value2);
       };
   });
-  var unconnectedSignals = function (conns1) {
-      return function (blocks1) {
+  var unconnectedSignals = function (conns) {
+      return function (blocks) {
           return function (dir) {
               var usedOutputs = Data_Functor.map(Data_Functor.functorArray)(function (v) {
                   return v.value0;
-              })(conns1);
+              })(conns);
               var usedInputs = Data_Functor.map(Data_Functor.functorArray)(function (v) {
                   return v.value1;
-              })(conns1);
+              })(conns);
               var usedCheck = (function () {
                   if (dir instanceof In) {
                       return usedInputs;
@@ -21747,7 +21747,7 @@ var PS = {};
                   if (dir instanceof Out) {
                       return usedOutputs;
                   };
-                  throw new Error("Failed pattern match at Main (line 264, column 21 - line 266, column 31): " + [ dir.constructor.name ]);
+                  throw new Error("Failed pattern match at Main (line 262, column 21 - line 264, column 31): " + [ dir.constructor.name ]);
               })();
               var allOutputs = Data_Array.concat(Data_Functor.map(Data_Functor.functorArray)(function (v) {
                   return Data_Array.mapWithIndex(function (i) {
@@ -21755,14 +21755,14 @@ var PS = {};
                           return new Signal(v.value0, i, Out.value);
                       };
                   })(v.value2);
-              })(blocks1));
+              })(blocks));
               var allInputs = Data_Array.concat(Data_Functor.map(Data_Functor.functorArray)(function (v) {
                   return Data_Array.mapWithIndex(function (i) {
                       return function (v1) {
                           return new Signal(v.value0, i, In.value);
                       };
                   })(v.value1);
-              })(blocks1));
+              })(blocks));
               var allCheck = (function () {
                   if (dir instanceof In) {
                       return allInputs;
@@ -21770,7 +21770,7 @@ var PS = {};
                   if (dir instanceof Out) {
                       return allOutputs;
                   };
-                  throw new Error("Failed pattern match at Main (line 257, column 20 - line 259, column 30): " + [ dir.constructor.name ]);
+                  throw new Error("Failed pattern match at Main (line 255, column 20 - line 257, column 30): " + [ dir.constructor.name ]);
               })();
               return Data_Array.filter(function (s) {
                   return !Data_Foldable.elem(Data_Foldable.foldableArray)(eqSignal)(s)(usedCheck);
@@ -21778,14 +21778,14 @@ var PS = {};
           };
       };
   };
-  var gAll = function (blocks1) {
-      return function (conns1) {
-          var wheresLines = gWheres(blocks1)(conns1);
+  var gAll = function (blocks) {
+      return function (conns) {
+          var wheresLines = gWheres(blocks)(conns);
           var wheresLines$prime = Data_Functor.map(Data_Functor.functorArray)(function (a) {
               return "        " + a;
           })(wheresLines);
-          var outs = unconnectedSignals(conns1)(blocks1)(Out.value);
-          var ins = unconnectedSignals(conns1)(blocks1)(In.value);
+          var outs = unconnectedSignals(conns)(blocks)(Out.value);
+          var ins = unconnectedSignals(conns)(blocks)(In.value);
           var inputUnbundleLine = (function () {
               var v = Data_Array.length(ins);
               if (v === 0) {
@@ -21797,16 +21797,16 @@ var PS = {};
               return "        " + gInputUnbundleLine(ins);
           })();
           var defLine = gSystem(ins)(outs);
-          return sepped(Data_Semigroup.append(Data_Semigroup.semigroupArray)([ defLine, "    where", inputUnbundleLine ])(wheresLines$prime))("\x0a");
+          return sepped(Data_Semigroup.append(Data_Semigroup.semigroupArray)([ defLine, "    where" ])(Data_Semigroup.append(Data_Semigroup.semigroupArray)(wheresLines$prime)([ inputUnbundleLine ])))("\x0a");
       };
   };
   var datadefP = Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))(Data.create)(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_String.string(Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)("data"))(p.whiteSpace))(p.identifier))(p.whiteSpace))(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)("=")))(p.whiteSpace))(Data_List.many(Text_Parsing_Parser.alternativeParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser.lazyParserT)(Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_Token.alphaNum(Data_Identity.monadIdentity))(Text_Parsing_Parser_String.oneOf(Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)([ " ", "|" ])))));
-  var conns = [ new Conn(new Signal("reg", 0, Out.value), new Signal("xor", 1, In.value)) ];
+  var connsExample = [ new Conn(new Signal("reg", 0, Out.value), new Signal("xor", 1, In.value)) ];
   var compute = function (x) {
       return x * 4 | 0;
   };
   var main = Effect_Console.log(Data_Show.show(Data_Show.showInt)(compute(6)));
-  var blocks = [ new Blk("xor", [ "Unsigned 1", "Unsigned 1" ], [ "Unsigned 1" ]), new Blk("reg", [ "Unsigned 1" ], [ "Unsigned 1" ]), new Blk("not", [ "Unsigned 1" ], [ "Unsigned 1" ]) ];
+  var blocksExample = [ new Blk("xor", [ "Unsigned 1", "Unsigned 1" ], [ "Unsigned 1" ]), new Blk("reg", [ "Unsigned 1" ], [ "Unsigned 1" ]), new Blk("not", [ "Unsigned 1" ], [ "Unsigned 1" ]) ];
   var blockdefP = Control_Apply.apply(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.apply(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))(Block.create)(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_String.string(Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)("mealy"))(p.whiteSpace))(p.identifier))(p.whiteSpace))(Text_Parsing_Parser_String.string(Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)("::")))(p.whiteSpace)))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(typeP)(p.whiteSpace)))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_String.string(Text_Parsing_Parser_String.stringLikeString)(Data_Identity.monadIdentity)("->"))(p.whiteSpace))(typeP));
   var alldefsP = (function () {
       var statements = Text_Parsing_Parser_Combinators.sepEndBy(Data_Identity.monadIdentity)(Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(datadefP)(blockdefP))(typedefP))(p.whiteSpace);
@@ -21838,8 +21838,8 @@ var PS = {};
   exports["Signal"] = Signal;
   exports["In"] = In;
   exports["Out"] = Out;
-  exports["blocks"] = blocks;
-  exports["conns"] = conns;
+  exports["blocksExample"] = blocksExample;
+  exports["connsExample"] = connsExample;
   exports["var"] = $$var;
   exports["sepped"] = sepped;
   exports["gBundle"] = gBundle;

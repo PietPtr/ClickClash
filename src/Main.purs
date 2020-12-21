@@ -3,21 +3,19 @@ module Main where
 import Prelude
 
 import Effect (Effect)
-import Effect.Console (log, logShow)
+import Effect.Console (log)
 
 import Control.Alt ((<|>))
-import Data.Either
-import Data.Array hiding (toUnfoldable, many, (:), some)
-import Data.List hiding (length, (!!), init, last, filter, mapWithIndex, updateAt, concat)
-import Data.Identity
-import Data.Show
-import Data.Maybe
-import Data.String.CodeUnits hiding (length)
-import Text.Parsing.Parser
-import Text.Parsing.Parser.Combinators
-import Text.Parsing.Parser.String
-import Text.Parsing.Parser.Language
-import Text.Parsing.Parser.Token 
+import Data.Either (Either)
+import Data.Array (length, (!!), init, last, filter, mapWithIndex, updateAt, concat, elem, foldl) 
+import Data.List (toUnfoldable, many, (:), some, List(..), intercalate) 
+import Data.Maybe (maybe)
+import Data.String.CodeUnits (fromCharArray)
+import Text.Parsing.Parser (ParseError, Parser, runParser)
+import Text.Parsing.Parser.Combinators (sepBy, sepBy1, sepEndBy, try)
+import Text.Parsing.Parser.String (char, oneOf, string)
+import Text.Parsing.Parser.Language (haskellDef)
+import Text.Parsing.Parser.Token (TokenParser, alphaNum, makeTokenParser)
 
 {-
 Toevoegingen:
@@ -145,14 +143,14 @@ instance showDirection :: Show Direction where
     show In = "In"
     show Out = "Out"
 
-blocks :: Array Block
-blocks = [
+blocksExample :: Array Block
+blocksExample = [
     Blk "xor" ["Unsigned 1", "Unsigned 1"] ["Unsigned 1"], 
     Blk "reg" ["Unsigned 1"] ["Unsigned 1"],
     Blk "not" ["Unsigned 1"] ["Unsigned 1"]]
 
-conns :: Array Connection
-conns = [
+connsExample :: Array Connection
+connsExample = [
     -- Conn (Signal "xor" 0 Out) (Signal "not" 0 In),
     -- Conn (Signal "xor" 0 Out) (Signal "reg" 0 In),
     Conn (Signal "reg" 0 Out) (Signal "xor" 1 In)]
@@ -230,7 +228,7 @@ gInputUnbundleLine ins = gBundle ins <> " = unbundle inputs"
 
 
 gAll :: Array Block -> Array Connection -> String
-gAll blocks conns = sepped ([defLine, whereLine, inputUnbundleLine] <> wheresLines') "\n"
+gAll blocks conns = sepped ([defLine, whereLine] <> wheresLines' <> [inputUnbundleLine]) "\n"
     where
         defLine = gSystem ins outs
         whereLine = "    where"
