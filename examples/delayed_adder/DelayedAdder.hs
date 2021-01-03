@@ -1,5 +1,6 @@
 import Clash.Prelude
 
+import qualified Data.List as L
 
 
 reg' :: Unsigned 1 -> Unsigned 1 -> (Unsigned 1, Unsigned 1)
@@ -26,3 +27,10 @@ system cloneIn0 = addOut0
         (cloneOut0, cloneOut1) = unbundle $ cloneB cloneIn0
         addOut0 = addB $ bundle (cloneOut0, regOut0)
         regOut0 = regB cloneOut1
+
+-- tests
+
+test1 = mapM_ putStrLn $ L.map (\(a, b) -> show a L.++ " -> " L.++ show b) $ L.zip input output
+    where
+        output = simulate @System system input
+        input = [0,0,0,0,1,0,0,0,1,1,1,1,1,0,0,0,0]

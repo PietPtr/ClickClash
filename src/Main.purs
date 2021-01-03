@@ -20,15 +20,18 @@ import Text.Parsing.Parser.Token (TokenParser, alphaNum, makeTokenParser)
 {-
 Toevoegingen:
 
-- Maybes ondersteunen met een blokje waarbij je in kan stellen wat er met de nothing case gebeurt.
-- specaal bram block omdat ie een spannend type heeft?
-- specifieke unbundle blokjes voor subtuples
+- speciaal bram block omdat ie een spannend type heeft?
+- specifieke unbundle blokjes voor subtuples (requires veel betere parsing)
 - toevoegen van kopieren van blokken, gaat spannend worden met de namen (dan moet er iets onderligged 
     zijn wat blockId en de onderliggende mealy functie onderscheid)
 - inputs nicer maken, nu kan je het hacken door ze als blokjes toe te voegen maar dat moet eigenlijk 
     gespecificeerd worden door de gebruiker op een nette manier. Vooral moet het mogelijk zijn om dezelfde
     input naar meerdere blokken te sturen.
+- support voor pure functies (die zijn helemaal lastig voor users gezien <$> en <*>), kan wel mooi als 
+    `pure func :: a -> b` getypt worden
+- support voor type variables (haha)
 
+- zo veel random bugs in de javascript...
 
 -}
 
@@ -109,8 +112,7 @@ parse :: String -> Either ParseError (Array Def)
 parse str = runParser str alldefsP
 
 
-
--- TODO: nu het connecten mogelijk is kunnen we vanuit een lijst van connecties code gaan gereneren. succes :P
+-- haskell code generation
 
 
 type Type = String
@@ -151,8 +153,6 @@ blocksExample = [
 
 connsExample :: Array Connection
 connsExample = [
-    -- Conn (Signal "xor" 0 Out) (Signal "not" 0 In),
-    -- Conn (Signal "xor" 0 Out) (Signal "reg" 0 In),
     Conn (Signal "reg" 0 Out) (Signal "xor" 1 In)]
 
 
@@ -222,6 +222,7 @@ gWhere conns (Blk id blockInputs blockOutputs) =  outputs <> " = " <> block <> "
         substituteConnection initial (Conn (Signal bid num Out) (Signal _ idx In)) = 
             maybe [] (\x -> x) (updateAt idx (Signal bid num Out) initial)
         substituteConnection initial _ = initial -- aaaah gooi aub iets van een exception of zo hier
+
 
 gInputUnbundleLine :: Array Signal -> String
 gInputUnbundleLine ins = gBundle ins <> " = unbundle inputs"

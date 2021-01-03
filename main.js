@@ -111,6 +111,8 @@ function load() {
 
     console.log(data.connections);
 
+    deleteAll();
+
     Block.blocks = [];
     Signal.connections = [];
     let signals = [];
